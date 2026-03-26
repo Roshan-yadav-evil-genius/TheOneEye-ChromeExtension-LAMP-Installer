@@ -25,6 +25,7 @@ INDEX_PLACEHOLDER = "__HOST__"
 INDEX_PATH = Path(SERVE_DIR) / INDEX_HTML
 INSTALL_SH_PATH = Path(SERVE_DIR) / "install.sh"
 INSTALL_PS1_PATH = Path(SERVE_DIR) / "install.ps1"
+LOGO_PATH = Path(SERVE_DIR) / "Logo.png"
 
 app = FastAPI(title="git_sync Install Server")
 
@@ -59,6 +60,13 @@ def serve_install_ps1() -> FileResponse:
     if not INSTALL_PS1_PATH.is_file():
         raise HTTPException(status_code=404, detail="install.ps1 missing")
     return FileResponse(INSTALL_PS1_PATH, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/favicon.ico")
+def serve_favicon() -> FileResponse:
+    if not LOGO_PATH.is_file():
+        raise HTTPException(status_code=404, detail="Logo.png missing")
+    return FileResponse(LOGO_PATH, media_type="image/png")
 
 
 def get_local_ip():
