@@ -23,6 +23,7 @@ $SYNC_BRANCH = if ($env:SYNC_BRANCH) { $env:SYNC_BRANCH } else { "main" }
 ## 2. Start the server
 
 ```bash
+pip install -r requirements.txt
 python3 server.py
 ```
 
@@ -94,7 +95,8 @@ To pick up script changes after you edit the installers, **re-run the install co
 
 | File | Purpose |
 |------|---------|
-| `server.py` | Python HTTP server (port 8090) |
+| `server.py` | FastAPI/Uvicorn HTTP server (port 8090) |
+| `requirements.txt` | Python runtime dependencies for server |
 | `index.html` | Browser landing page (`__HOST__` replaced with request host) |
 | `install.sh` | Linux/macOS self-contained installer |
 | `install.ps1` | Windows self-contained installer (PowerShell) |
@@ -138,4 +140,4 @@ WantedBy=multi-user.target
 sudo systemctl enable --now git-sync-server
 ```
 
-**macOS (launchd)** / **Windows (NSSM)** — run `python3 server.py` in a persistent terminal or service manager.
+**macOS (launchd)** / **Windows (NSSM)** — install dependencies once with `pip install -r requirements.txt`, then run `python3 server.py` in a persistent terminal or service manager.

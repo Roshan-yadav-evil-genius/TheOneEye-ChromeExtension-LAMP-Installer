@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-server.py — Hosts install.sh and install.ps1 on port 8090
+server.py — FastAPI server for install scripts on port 8090
 Run: python3 server.py
 
 Users then run:
@@ -8,58 +8,57 @@ Users then run:
   Windows     : irm http://YOUR_IP:8090/install.ps1 | iex
 """
 
-import http.server
-import socketserver
 import os
 import socket
 import sys
-from urllib.parse import urlparse
+from pathlib import Path
+
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
 
 PORT = 8090
 SERVE_DIR = os.path.dirname(os.path.abspath(__file__))
 INDEX_HTML = "index.html"
 INDEX_PLACEHOLDER = "__HOST__"
+INDEX_PATH = Path(SERVE_DIR) / INDEX_HTML
+INSTALL_SH_PATH = Path(SERVE_DIR) / "install.sh"
+INSTALL_PS1_PATH = Path(SERVE_DIR) / "install.ps1"
 
-# MIME types for our scripts
-MIME_TYPES = {
-    ".sh":   "text/plain; charset=utf-8",
-    ".ps1":  "text/plain; charset=utf-8",
-    ".bat":  "text/plain; charset=utf-8",
-    ".txt":  "text/plain; charset=utf-8",
-    ".html": "text/html; charset=utf-8",
-}
+app = FastAPI(title="git_sync Install Server")
 
-class InstallHandler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=SERVE_DIR, **kwargs)
 
-    def guess_type(self, path):
-        ext = os.path.splitext(path)[1].lower()
-        return MIME_TYPES.get(ext, "text/plain; charset=utf-8")
+def resolve_host(request: Request, fallback_ip: str) -> str:
+    return request.headers.get("host") or f"{fallback_ip}:{PORT}"
 
-    def log_message(self, format, *args):
-        client = self.client_address[0]
-        print(f"  [{client}] {format % args}")
 
-    def do_GET(self):
-        path = urlparse(self.path).path or "/"
-        if path in ("/", "/index.html"):
-            index_path = os.path.join(SERVE_DIR, INDEX_HTML)
-            if not os.path.isfile(index_path):
-                self.send_error(500, f"{INDEX_HTML} missing")
-                return
-            host = self.headers.get("Host", f"YOUR_IP:{PORT}")
-            with open(index_path, encoding="utf-8") as f:
-                body = f.read().replace(INDEX_PLACEHOLDER, host)
-            data = body.encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
-            return
+def render_index(host: str) -> str:
+    if not INDEX_PATH.is_file():
+        raise HTTPException(status_code=500, detail=f"{INDEX_HTML} missing")
+    return INDEX_PATH.read_text(encoding="utf-8").replace(INDEX_PLACEHOLDER, host)
 
-        super().do_GET()
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/index.html", response_class=HTMLResponse)
+def serve_index(request: Request) -> HTMLResponse:
+    host = resolve_host(request, get_local_ip())
+    body = render_index(host)
+    return HTMLResponse(content=body)
+
+
+@app.get("/install.sh")
+def serve_install_sh() -> FileResponse:
+    if not INSTALL_SH_PATH.is_file():
+        raise HTTPException(status_code=404, detail="install.sh missing")
+    return FileResponse(INSTALL_SH_PATH, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/install.ps1")
+def serve_install_ps1() -> FileResponse:
+    if not INSTALL_PS1_PATH.is_file():
+        raise HTTPException(status_code=404, detail="install.ps1 missing")
+    return FileResponse(INSTALL_PS1_PATH, media_type="text/plain; charset=utf-8")
 
 
 def get_local_ip():
@@ -74,42 +73,40 @@ def get_local_ip():
 
 
 def main():
-    os.chdir(SERVE_DIR)
+    ip = get_local_ip()
 
-    # Check that scripts exist
     for f in ["install.sh", "install.ps1", INDEX_HTML]:
         path = os.path.join(SERVE_DIR, f)
         if not os.path.exists(path):
             print(f"[WARN] {f} not found in {SERVE_DIR}")
 
-    ip = get_local_ip()
+    print()
+    print("=" * 52)
+    print("  git_sync Install Server — Running")
+    print("=" * 52)
+    print(f"  Serving from : {SERVE_DIR}")
+    print(f"  Listening on : 0.0.0.0:{PORT}")
+    print()
+    print("  Linux / macOS:")
+    print(f"    curl -sSL http://{ip}:{PORT}/install.sh | bash")
+    print()
+    print("  Windows (PowerShell as Admin):")
+    print(f"    irm http://{ip}:{PORT}/install.ps1 | iex")
+    print()
+    print("  Browser:")
+    print(f"    http://{ip}:{PORT}/")
+    print("=" * 52)
+    print("  Press Ctrl+C to stop")
+    print()
 
-    with socketserver.TCPServer(("", PORT), InstallHandler) as httpd:
-        httpd.allow_reuse_address = True
-        print()
-        print("=" * 52)
-        print("  git_sync Install Server — Running")
-        print("=" * 52)
-        print(f"  Serving from : {SERVE_DIR}")
-        print(f"  Listening on : 0.0.0.0:{PORT}")
-        print()
-        print("  Linux / macOS:")
-        print(f"    curl -sSL http://{ip}:{PORT}/install.sh | bash")
-        print()
-        print("  Windows (PowerShell as Admin):")
-        print(f"    irm http://{ip}:{PORT}/install.ps1 | iex")
-        print()
-        print("  Browser:")
-        print(f"    http://{ip}:{PORT}/")
-        print("=" * 52)
-        print("  Press Ctrl+C to stop")
-        print()
+    try:
+        uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="info")
+    except KeyboardInterrupt:
+        print("\n[✓] Server stopped.")
+        sys.exit(0)
 
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\n[✓] Server stopped.")
-            sys.exit(0)
+
+app.mount("/", StaticFiles(directory=SERVE_DIR, html=False), name="static")
 
 
 if __name__ == "__main__":
