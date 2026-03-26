@@ -57,6 +57,8 @@ $env:REPO_URL="https://github.com/user/repo.git"; irm http://YOUR_IP:8090/instal
 $env:REPO_URL="https://github.com/user/repo.git"; $env:SYNC_BRANCH="master"; irm http://YOUR_IP:8090/install.ps1 | iex
 ```
 
+If **Git** is missing, the installer tries to install it: **Ubuntu** (`sudo apt-get install -y git`), **macOS** via Homebrew when `brew` is available (otherwise use `xcode-select --install` and re-run), **Windows** via `winget` (run PowerShell as **Administrator** if that step fails; Chocolatey is used if `choco` is on `PATH`). On other Linux distros, install `git` yourself, then re-run.
+
 ---
 
 ## 4. What happens after install

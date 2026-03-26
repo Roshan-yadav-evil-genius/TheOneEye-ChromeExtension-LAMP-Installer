@@ -41,8 +41,35 @@ else
 fi
 ok "Detected: $OS"
 
-# ── 2. Check git ─────────────────────────────────────────────
-command -v git &>/dev/null || err "git not installed. Please install git first."
+# ── 2. Ensure git ────────────────────────────────────────────
+ensure_git() {
+    if command -v git &>/dev/null; then
+        return 0
+    fi
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v brew &>/dev/null; then
+            info "Git not found; installing via Homebrew..."
+            brew install git
+        else
+            err "Git not installed. On macOS install Xcode Command Line Tools (run: xcode-select --install) or install Homebrew (https://brew.sh), then install git and re-run this script."
+        fi
+    else
+        if [[ -r /etc/os-release ]]; then
+            # shellcheck source=/dev/null
+            . /etc/os-release
+        fi
+        if [[ "${ID:-}" == "ubuntu" ]]; then
+            info "Git not found; installing via apt..."
+            sudo apt-get update -qq
+            sudo apt-get install -y git
+        else
+            err "Git not installed. This installer can auto-install Git only on Ubuntu (sudo apt-get install -y git). Install git for your distro, then re-run this script."
+        fi
+    fi
+    command -v git &>/dev/null || err "Git is still not available after install attempt. Install git manually, then re-run."
+}
+
+ensure_git
 ok "git: $(git --version)"
 
 # ── 3. Check crontab ─────────────────────────────────────────

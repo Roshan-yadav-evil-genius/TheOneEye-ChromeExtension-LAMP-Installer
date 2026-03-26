@@ -27,19 +27,57 @@ function Write-Info { param($msg) Write-Host " ->  $msg"    -ForegroundColor Cya
 function Write-Warn { param($msg) Write-Host "[!]  $msg"    -ForegroundColor Yellow }
 function Write-Err  { param($msg) Write-Host "[ERR] $msg"   -ForegroundColor Red; exit 1 }
 
+function Update-SessionPath {
+    $machine = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+    $user   = [System.Environment]::GetEnvironmentVariable("Path", "User")
+    $parts = @($machine, $user) | Where-Object { $_ }
+    if ($parts.Count -gt 0) { $env:Path = ($parts -join ";") }
+}
+
+function Ensure-Git {
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        Write-OK "git found: $(git --version)"
+        return
+    }
+    Write-Info "Git not found; attempting install..."
+    $winget = Get-Command winget -ErrorAction SilentlyContinue
+    if ($winget) {
+        $prevEap = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        & winget install --id Git.Git -e --source winget --accept-package-agreements --accept-source-agreements
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warn "winget exited with code $LASTEXITCODE (Git may already be installed or Administrator may be required)."
+        }
+        $ErrorActionPreference = $prevEap
+        Update-SessionPath
+    }
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        $choco = Get-Command choco -ErrorAction SilentlyContinue
+        if ($choco) {
+            $prevEap = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            & choco install git.install -y
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warn "choco exited with code $LASTEXITCODE."
+            }
+            $ErrorActionPreference = $prevEap
+            Update-SessionPath
+        }
+    }
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+        Write-Err "Git could not be installed automatically. Run as Administrator: winget install --id Git.Git -e --source winget, or install from https://git-scm.com/download/win"
+    }
+    Write-OK "git found: $(git --version)"
+}
+
 Write-Host ""
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "   git_sync Installer - Windows             " -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# ── 1. Check git ─────────────────────────────────────────────
-try {
-    $gitVer = & git --version 2>&1
-    Write-OK "git found: $gitVer"
-} catch {
-    Write-Err "git is not installed. Download from: https://git-scm.com/download/win"
-}
+# ── 1. Ensure git ────────────────────────────────────────────
+Ensure-Git
 
 # ── 2. Create install dir ────────────────────────────────────
 if (-not (Test-Path $INSTALL_DIR)) { New-Item -ItemType Directory -Path $INSTALL_DIR | Out-Null }
