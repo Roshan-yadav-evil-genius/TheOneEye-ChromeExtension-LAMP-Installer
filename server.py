@@ -58,7 +58,7 @@ class InstallHandler(http.server.SimpleHTTPRequestHandler):
 </head>
 <body>
 <h1>🔄 git_sync Installer</h1>
-<p>Auto clone or pull a git repo to your Desktop every hour.</p>
+<p>Every hour: clone the repo to Desktop if missing, otherwise <code>git fetch</code>, <code>git checkout</code> the sync branch, and <code>git reset --hard origin/&lt;branch&gt;</code> (local changes on that clone are discarded).</p>
 
 <h2><span class="os">Linux / macOS</span></h2>
 <pre>curl -sSL http://{host}/install.sh | bash</pre>
@@ -66,11 +66,13 @@ class InstallHandler(http.server.SimpleHTTPRequestHandler):
 <h2><span class="os">Windows</span> (PowerShell as Administrator)</h2>
 <pre>irm http://{host}/install.ps1 | iex</pre>
 
-<h2>With a custom repo URL</h2>
+<h2>With a custom repo URL (optional branch; default <code>main</code>)</h2>
 <p><b>Linux/macOS:</b></p>
 <pre>curl -sSL http://{host}/install.sh | bash -s -- https://github.com/user/repo.git</pre>
+<pre>curl -sSL http://{host}/install.sh | bash -s -- https://github.com/user/repo.git master</pre>
 <p><b>Windows:</b></p>
 <pre>$env:REPO_URL="https://github.com/user/repo.git"; irm http://{host}/install.ps1 | iex</pre>
+<pre>$env:REPO_URL="https://github.com/user/repo.git"; $env:SYNC_BRANCH="master"; irm http://{host}/install.ps1 | iex</pre>
 
 <h2>Files</h2>
 <pre><a href="/install.sh"  style="color:#4ec9b0">install.sh</a>   — Linux / macOS installer

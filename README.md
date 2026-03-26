@@ -4,16 +4,18 @@ Host this folder and users can install with a single command.
 
 ---
 
-## 1. Setup — Edit your repo URL
+## 1. Setup — Edit your repo URL (and optional default branch)
 
-**`install.sh`** (Linux/macOS) — change line 11:
+**`install.sh`** (Linux/macOS) — defaults for repo URL and branch (`main`):
 ```bash
 REPO_URL="${1:-https://github.com/YOUR_USERNAME/YOUR_REPO.git}"
+SYNC_BRANCH="${2:-main}"
 ```
 
-**`install.ps1`** (Windows) — change line 10:
+**`install.ps1`** (Windows):
 ```powershell
-$REPO_URL = if ($env:REPO_URL) { $env:REPO_URL } else { "https://github.com/YOUR_USERNAME/YOUR_REPO.git" }
+$REPO_URL    = if ($env:REPO_URL) { $env:REPO_URL } else { "https://github.com/YOUR_USERNAME/YOUR_REPO.git" }
+$SYNC_BRANCH = if ($env:SYNC_BRANCH) { $env:SYNC_BRANCH } else { "main" }
 ```
 
 ---
@@ -40,13 +42,19 @@ curl -sSL http://YOUR_IP:8090/install.sh | bash
 irm http://YOUR_IP:8090/install.ps1 | iex
 ```
 
-**With a custom repo URL:**
+**With a custom repo URL (and optional branch):**
 ```bash
-# Linux/macOS
+# Linux/macOS — default branch main
 curl -sSL http://YOUR_IP:8090/install.sh | bash -s -- https://github.com/user/repo.git
+
+# Linux/macOS — sync `master` instead of `main`
+curl -sSL http://YOUR_IP:8090/install.sh | bash -s -- https://github.com/user/repo.git master
 
 # Windows
 $env:REPO_URL="https://github.com/user/repo.git"; irm http://YOUR_IP:8090/install.ps1 | iex
+
+# Windows — non-default branch
+$env:REPO_URL="https://github.com/user/repo.git"; $env:SYNC_BRANCH="master"; irm http://YOUR_IP:8090/install.ps1 | iex
 ```
 
 ---
@@ -56,10 +64,13 @@ $env:REPO_URL="https://github.com/user/repo.git"; irm http://YOUR_IP:8090/instal
 | Situation | Action |
 |-----------|--------|
 | Repo not on Desktop | `git clone` it |
-| Repo already on Desktop | `git pull` it |
+| Repo already on Desktop | `git fetch origin`, then `git checkout <branch>`, then `git reset --hard origin/<branch>` (discards local commits and uncommitted changes on that clone) |
+| Default branch | `main` (override: 2nd arg to `install.sh`, or `$env:SYNC_BRANCH` on Windows) |
 | Runs every | 1 hour |
-| Logs | `~/.git_sync.log` |
+| Logs | `~/.git_sync.log` (Windows: `%USERPROFILE%\.git_sync.log`) |
 | Scheduler | `cron` (Linux/macOS) / Task Scheduler (Windows) |
+
+To pick up script changes after you edit the installers, **re-run the install command** so `~/.git_sync/git_sync.sh` (or `git_sync.ps1`) is regenerated.
 
 ---
 
