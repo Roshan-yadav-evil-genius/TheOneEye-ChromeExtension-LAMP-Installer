@@ -10,7 +10,7 @@
 set -e
 
 # ── Config ───────────────────────────────────────────────────
-REPO_URL="${1:-https://github.com/Roshan-yadav-evil-genius/TheOneEye.git}"
+REPO_URL="${1:-https://github.com/Roshan-yadav-evil-genius/TheOneEye-ChromeExtension-LAMP-build.git}"
 SYNC_BRANCH="${2:-main}"
 # ─────────────────────────────────────────────────────────────
 

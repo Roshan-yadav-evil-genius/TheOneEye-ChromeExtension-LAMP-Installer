@@ -8,13 +8,13 @@ Host this folder and users can install with a single command.
 
 **`install.sh`** (Linux/macOS) — defaults for repo URL and branch (`main`):
 ```bash
-REPO_URL="${1:-https://github.com/YOUR_USERNAME/YOUR_REPO.git}"
+REPO_URL="${1:-https://github.com/Roshan-yadav-evil-genius/TheOneEye-ChromeExtension-LAMP-build.git}"
 SYNC_BRANCH="${2:-main}"
 ```
 
 **`install.ps1`** (Windows):
 ```powershell
-$REPO_URL    = if ($env:REPO_URL) { $env:REPO_URL } else { "https://github.com/YOUR_USERNAME/YOUR_REPO.git" }
+$REPO_URL    = if ($env:REPO_URL) { $env:REPO_URL } else { "https://github.com/Roshan-yadav-evil-genius/TheOneEye-ChromeExtension-LAMP-build.git" }
 $SYNC_BRANCH = if ($env:SYNC_BRANCH) { $env:SYNC_BRANCH } else { "main" }
 ```
 

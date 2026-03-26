@@ -10,7 +10,7 @@
 $ErrorActionPreference = "Stop"
 
 # ── Config ───────────────────────────────────────────────────
-$REPO_URL    = if ($env:REPO_URL) { $env:REPO_URL } else { "https://github.com/YOUR_USERNAME/YOUR_REPO.git" }
+$REPO_URL    = if ($env:REPO_URL) { $env:REPO_URL } else { "https://github.com/Roshan-yadav-evil-genius/TheOneEye-ChromeExtension-LAMP-build.git" }
 $SYNC_BRANCH = if ($env:SYNC_BRANCH) { $env:SYNC_BRANCH } else { "main" }
 # ─────────────────────────────────────────────────────────────
 
