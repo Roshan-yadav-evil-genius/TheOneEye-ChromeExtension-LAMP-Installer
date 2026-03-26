@@ -59,6 +59,20 @@ $env:REPO_URL="https://github.com/user/repo.git"; $env:SYNC_BRANCH="master"; irm
 
 If **Git** is missing, the installer tries to install it: **Ubuntu** (`sudo apt-get install -y git`), **macOS** via Homebrew when `brew` is available (otherwise use `xcode-select --install` and re-run), **Windows** via `winget` (run PowerShell as **Administrator** if that step fails; Chocolatey is used if `choco` is on `PATH`). On other Linux distros, install `git` yourself, then re-run.
 
+**Windows — “running scripts is disabled on this system”**
+
+If PowerShell refuses to run `git_sync.ps1` (installer or hourly sync), allow scripts for your user, then re-run the installer or open a new PowerShell window:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+```
+
+One-off sync without changing policy:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.git_sync\git_sync.ps1"
+```
+
 ---
 
 ## 4. What happens after install
@@ -81,6 +95,7 @@ To pick up script changes after you edit the installers, **re-run the install co
 | File | Purpose |
 |------|---------|
 | `server.py` | Python HTTP server (port 8090) |
+| `index.html` | Browser landing page (`__HOST__` replaced with request host) |
 | `install.sh` | Linux/macOS self-contained installer |
 | `install.ps1` | Windows self-contained installer (PowerShell) |
 

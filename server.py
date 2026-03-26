@@ -13,9 +13,12 @@ import socketserver
 import os
 import socket
 import sys
+from urllib.parse import urlparse
 
 PORT = 8090
 SERVE_DIR = os.path.dirname(os.path.abspath(__file__))
+INDEX_HTML = "index.html"
+INDEX_PLACEHOLDER = "__HOST__"
 
 # MIME types for our scripts
 MIME_TYPES = {
@@ -39,46 +42,21 @@ class InstallHandler(http.server.SimpleHTTPRequestHandler):
         print(f"  [{client}] {format % args}")
 
     def do_GET(self):
-        # Root path → show usage instructions
-        if self.path == "/" or self.path == "":
+        path = urlparse(self.path).path or "/"
+        if path in ("/", "/index.html"):
+            index_path = os.path.join(SERVE_DIR, INDEX_HTML)
+            if not os.path.isfile(index_path):
+                self.send_error(500, f"{INDEX_HTML} missing")
+                return
+            host = self.headers.get("Host", f"YOUR_IP:{PORT}")
+            with open(index_path, encoding="utf-8") as f:
+                body = f.read().replace(INDEX_PLACEHOLDER, host)
+            data = body.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
             self.end_headers()
-            host = self.headers.get("Host", f"YOUR_IP:{PORT}")
-            html = f"""<!DOCTYPE html>
-<html>
-<head><title>git_sync Installer</title>
-<style>
-  body {{ font-family: monospace; background:#1e1e1e; color:#d4d4d4; padding:40px; }}
-  h1 {{ color:#4ec9b0; }} h2 {{ color:#9cdcfe; margin-top:30px; }}
-  pre {{ background:#2d2d2d; padding:16px; border-radius:6px; border-left:3px solid #4ec9b0; overflow-x:auto; }}
-  .os {{ color:#ce9178; font-weight:bold; }}
-  code {{ color:#ce9178; }}
-</style>
-</head>
-<body>
-<h1>🔄 git_sync Installer</h1>
-<p>Every hour: clone the repo to Desktop if missing, otherwise <code>git fetch</code>, <code>git checkout</code> the sync branch, and <code>git reset --hard origin/&lt;branch&gt;</code> (local changes on that clone are discarded).</p>
-
-<h2><span class="os">Linux / macOS</span></h2>
-<pre>curl -sSL http://{host}/install.sh | bash</pre>
-
-<h2><span class="os">Windows</span> (PowerShell as Administrator)</h2>
-<pre>irm http://{host}/install.ps1 | iex</pre>
-
-<h2>With a custom repo URL (optional branch; default <code>main</code>)</h2>
-<p><b>Linux/macOS:</b></p>
-<pre>curl -sSL http://{host}/install.sh | bash -s -- https://github.com/user/repo.git</pre>
-<pre>curl -sSL http://{host}/install.sh | bash -s -- https://github.com/user/repo.git master</pre>
-<p><b>Windows:</b></p>
-<pre>$env:REPO_URL="https://github.com/user/repo.git"; irm http://{host}/install.ps1 | iex</pre>
-<pre>$env:REPO_URL="https://github.com/user/repo.git"; $env:SYNC_BRANCH="master"; irm http://{host}/install.ps1 | iex</pre>
-
-<h2>Files</h2>
-<pre><a href="/install.sh"  style="color:#4ec9b0">install.sh</a>   — Linux / macOS installer
-<a href="/install.ps1" style="color:#4ec9b0">install.ps1</a>  — Windows installer (PowerShell)</pre>
-</body></html>"""
-            self.wfile.write(html.encode())
+            self.wfile.write(data)
             return
 
         super().do_GET()
@@ -99,7 +77,7 @@ def main():
     os.chdir(SERVE_DIR)
 
     # Check that scripts exist
-    for f in ["install.sh", "install.ps1"]:
+    for f in ["install.sh", "install.ps1", INDEX_HTML]:
         path = os.path.join(SERVE_DIR, f)
         if not os.path.exists(path):
             print(f"[WARN] {f} not found in {SERVE_DIR}")

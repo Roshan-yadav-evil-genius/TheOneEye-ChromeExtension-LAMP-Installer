@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>LAMP Installer</title>
+  <style>
+    :root {
+      --background: #111111;
+      --foreground: #f5f5f5;
+      --muted-foreground: #b5b5b5;
+      --card: #1b1b1b;
+      --border: #2c2c2c;
+      --primary: #f6c343;
+      --primary-foreground: #2f2200;
+      --radius: 10px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 32px 20px;
+      background: var(--background);
+      color: var(--foreground);
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--primary);
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand-logo {
+      width: 80px;
+      height: 40px;
+      flex: 0 0 auto;
+    }
+
+    h2 {
+      margin-top: 26px;
+      margin-bottom: 10px;
+      color: var(--foreground);
+      font-size: 1.05rem;
+      font-weight: 650;
+    }
+
+    p {
+      margin: 0 0 12px;
+      color: var(--muted-foreground);
+    }
+
+    pre {
+      margin: 0 0 12px;
+      padding: 14px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      color: var(--foreground);
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 0.92rem;
+    }
+
+    .os {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    code {
+      color: var(--primary);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .video-wrap {
+      margin: 18px 0 14px;
+      padding: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .video-wrap video {
+      width: 100%;
+      border-radius: calc(var(--radius) - 2px);
+      display: block;
+    }
+
+    .install-group {
+      margin: 14px 0;
+      padding: 12px 12px 2px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+    }
+
+    .install-group h2 {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+<div class="brand">
+  <img class="brand-logo" src="/TheOneEye.png" alt="TheOneEye logo" />
+  <h1>TheOneEye - LAMP Installer</h1>
+</div>
+<p><b>What is LAMP?</b> LAMP stands for LinkedIn Amplifier. It is a Chrome extension developed by the TheOneEye team. The extension scores posts and profiles according to your intent, helping you filter opportunities and high-value people from noise.</p>
+
+<div class="install-group">
+  <h2><span class="os">Linux / macOS</span></h2>
+  <pre>curl -sSL http://__HOST__/install.sh | bash</pre>
+</div>
+
+<div class="install-group">
+  <h2><span class="os">Windows</span> (PowerShell as Administrator)</h2>
+  <pre>irm http://__HOST__/install.ps1 | iex</pre>
+  <p>If you get an error like "running scripts is disabled on this system", run the following command:</p>
+  <pre>Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force</pre>
+</div>
+
+<h2>Installation Tutorial</h2>
+<p>After you run the install command for your system, the extension is placed on your desktop. Follow the tutorial below to turn on Developer mode in Chrome and load the extension.</p>
+<div class="video-wrap">
+  <video autoplay muted playsinline loop controls preload="metadata">
+    <source src="/InstallationTutorial.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+<h2>Files</h2>
+<pre><a href="/install.sh">install.sh</a>   — Linux / macOS installer
+<a href="/install.ps1">install.ps1</a>  — Windows installer (PowerShell)</pre>
+</div>
+</body>
+</html>
